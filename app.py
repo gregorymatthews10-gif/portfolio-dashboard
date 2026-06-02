@@ -4,7 +4,7 @@ Holdings/cost basis from holdings.json; prices, history & fundamentals fetched l
 from yfinance on load, with graceful fallback so the page always renders.
 Dark terminal styling modeled on Mispriced Assets (Nick Nemeth).
 """
-import json, datetime, math
+import json, datetime, math, time
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -50,14 +50,43 @@ def fetch_history(tickers):
         if isinstance(h,pd.Series): h=h.to_frame(tickers[0])
         return h.dropna(how="all")
     except Exception: return pd.DataFrame()
+def _yf_session():
+    """Browser-impersonating session to dodge Yahoo rate-limiting on shared hosts."""
+    try:
+        from curl_cffi import requests as cffi
+        return cffi.Session(impersonate="chrome")
+    except Exception:
+        return None
+
 @st.cache_data(ttl=21600)
 def fetch_info(tickers):
     out={}
     try:
         import yfinance as yf
+        sess=_yf_session()
         for t in tickers:
-            try: out[t]=yf.Ticker(t).info or {}
-            except Exception: out[t]={}
+            data={}
+            for attempt in range(2):
+                try:
+                    tk=yf.Ticker(t, session=sess) if sess else yf.Ticker(t)
+                    info=tk.get_info() if hasattr(tk,"get_info") else tk.info
+                    if info and len(info)>5:
+                        data=dict(info); break
+                except Exception:
+                    pass
+                time.sleep(0.3)
+            # fall back / supplement with fast_info (price, market cap)
+            try:
+                tk=yf.Ticker(t, session=sess) if sess else yf.Ticker(t)
+                fi=getattr(tk,"fast_info",None)
+                if fi:
+                    for k,src_k in [("marketCap","market_cap"),("trailingPE","pe_ratio")]:
+                        try:
+                            v=fi.get(src_k) if hasattr(fi,"get") else getattr(fi,src_k,None)
+                            if v and not data.get(k): data[k]=v
+                        except Exception: pass
+            except Exception: pass
+            out[t]=data
     except Exception: pass
     return out
 
