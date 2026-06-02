@@ -11,21 +11,21 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Mispriced? - Live Portfolio", page_icon="chart_with_upwards_trend", layout="wide")
+st.set_page_config(page_title="Mispriced? - Live Portfolio", page_icon="chart_with_upwards_trend", layout="wide", initial_sidebar_state="collapsed")
 
 BG="#0d1117"; PANEL="#131a24"; GRID="#1e2733"; TXT="#d6dde6"; MUT="#7d8896"
 GREEN="#16c784"; RED="#ea3943"; BLUE="#4d9fff"; PURPLE="#a371f7"; GOLD="#e3b341"
 st.markdown(f"""<style>
 .stApp {{ background:{BG}; color:{TXT}; }}
-section[data-testid="stSidebar"] {{ background:{PANEL}; border-right:1px solid {GRID}; }}
-.block-container {{ padding-top:1.1rem; max-width:1450px; }}
+section[data-testid="stSidebar"] {{ display:none; }}
+.block-container {{ padding-top:3rem; max-width:1450px; }}
 h1,h2,h3,h4 {{ color:{TXT}; font-family:'Segoe UI',sans-serif; }}
 [data-testid="stMetricLabel"] {{ color:{MUT}; font-size:.7rem; letter-spacing:.09em; text-transform:uppercase; }}
-[data-testid="stMetricValue"] {{ font-size:1.45rem; font-weight:700; }}
+[data-testid="stMetricValue"] {{ font-size:1.55rem; font-weight:700; color:#ffffff; }}
 [data-testid="stDataFrame"] {{ background:{PANEL}; }}
-.stTabs [data-baseweb="tab-list"] {{ gap:2px; }}
-.stTabs [data-baseweb="tab"] {{ background:{PANEL}; color:{MUT}; border-radius:6px 6px 0 0; }}
-.stTabs [aria-selected="true"] {{ background:{GRID}; color:{BLUE}; }}
+.stTabs [data-baseweb="tab-list"] {{ gap:8px; margin-top:.4rem; border-bottom:1px solid {GRID}; padding-bottom:2px; }}
+.stTabs [data-baseweb="tab"] {{ background:{PANEL}; color:{MUT}; border-radius:7px; padding:10px 20px; font-weight:600; font-size:.9rem; }}
+.stTabs [aria-selected="true"] {{ background:{BLUE}1f; color:{BLUE}; box-shadow:inset 0 -2px 0 {BLUE}; }}
 .mono {{ font-family:'JetBrains Mono','Consolas',monospace; }}
 table.term {{ width:100%; border-collapse:collapse; font-family:'JetBrains Mono','Consolas',monospace; font-size:.82rem; }}
 table.term th {{ text-align:right; color:{MUT}; font-weight:600; padding:7px 10px; border-bottom:1px solid {GRID}; text-transform:uppercase; font-size:.68rem; letter-spacing:.05em; }}
@@ -224,22 +224,6 @@ def fetch_options(tickers):
             except Exception: continue
     except Exception: pass
     return out
-
-# ---------------- sidebar ----------------
-with st.sidebar:
-    st.markdown(f"<h2 class='mono' style='margin-bottom:0'>&#128200; MISPRICED?</h2>"
-                f"<div class='mono' style='color:{MUT};letter-spacing:.3em;font-size:.7rem'>PORTFOLIO TERMINAL</div><hr>",
-                unsafe_allow_html=True)
-    st.markdown(f"<div class='mono' style='color:{MUT};font-size:.78rem'>STATUS</div>"
-                f"<div class='mono' style='color:{GREEN if live_ok else GOLD};font-weight:700'>{'LIVE' if live_ok else 'SNAPSHOT'}</div><br>"
-                f"<div class='mono' style='color:{MUT};font-size:.78rem'>NAV</div>"
-                f"<div class='mono' style='font-size:1.1rem;font-weight:700'>{money(nav)}</div><br>"
-                f"<div class='mono' style='color:{MUT};font-size:.78rem'>TOTAL RETURN</div>"
-                f"<div class='mono {cls(total_ret)}' style='font-size:1.1rem;font-weight:700'>{pctf(total_ret)}</div><br>"
-                f"<div class='mono' style='color:{MUT};font-size:.78rem'>POSITIONS</div>"
-                f"<div class='mono' style='font-size:1.1rem;font-weight:700'>{len(df)}</div><hr>"
-                f"<div class='mono' style='color:{MUT};font-size:.7rem'>as of {datetime.date.today().isoformat()}<br>not financial advice</div>",
-                unsafe_allow_html=True)
 
 # ---------------- header ribbon ----------------
 st.markdown(f"<div class='mono' style='color:{MUT}'>"
