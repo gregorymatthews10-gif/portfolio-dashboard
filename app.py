@@ -1,5 +1,5 @@
 """
-Mispriced? - live portfolio terminal (Streamlit).
+ - live portfolio terminal (Streamlit).
 Holdings/cost basis from holdings.json; prices, history & fundamentals fetched live
 from yfinance on load, with graceful fallback so the page always renders.
 Dark terminal styling modeled on Mispriced Assets (Nick Nemeth).
@@ -42,6 +42,10 @@ DASH="-"
 
 @st.cache_data(ttl=300)
 def load_holdings(): return json.load(open("holdings.json"))
+@st.cache_data(ttl=300)
+def load_trades():
+    try: return json.load(open("trades.json"))
+    except Exception: return []
 @st.cache_data(ttl=600)
 def fetch_history(tickers):
     try:
@@ -90,6 +94,37 @@ def fetch_info(tickers):
     except Exception: pass
     return out
 
+@st.cache_data(ttl=21600)
+def fetch_finnhub(tickers, key):
+    """Reliable fundamentals via Finnhub (works on shared hosts where Yahoo .info is blocked)."""
+    import requests
+    out={}
+    for t in tickers:
+        try:
+            r=requests.get("https://finnhub.io/api/v1/stock/metric",
+                           params={"symbol":t,"metric":"all","token":key}, timeout=12)
+            met=(r.json() or {}).get("metric",{}) or {}
+        except Exception:
+            met={}
+        def f(k):
+            v=met.get(k); return v if isinstance(v,(int,float)) else None
+        m={}
+        mc=f("marketCapitalization"); m["marketCap"]=mc*1e6 if mc else None
+        m["trailingPE"]=f("peTTM") or f("peBasicExclExtraTTM")
+        m["forwardPE"]=f("forwardPE") or f("peNormalizedAnnual")
+        m["priceToSalesTrailing12Months"]=f("psTTM")
+        m["priceToBook"]=f("pbAnnual") or f("pbQuarterly")
+        m["enterpriseToEbitda"]=f("currentEv/ebitdaTTM") or f("currentEv/ebitdaAnnual")
+        for s,dkey in [("grossMarginTTM","grossMargins"),("operatingMarginTTM","operatingMargins"),
+                       ("netProfitMarginTTM","profitMargins"),("roeTTM","returnOnEquity"),
+                       ("roaTTM","returnOnAssets")]:
+            v=f(s); m[dkey]=v/100 if v is not None else None
+        rg=f("revenueGrowthTTMYoy"); m["revenueGrowth"]=rg/100 if rg is not None else None
+        m["dividendRate"]=f("dividendPerShareAnnual")
+        m["dividendYield"]=f("dividendYieldIndicatedAnnual")
+        out[t]={k:v for k,v in m.items() if v is not None}
+    return out
+
 @st.cache_data(ttl=1800)
 def fetch_news(tickers):
     items=[]
@@ -128,6 +163,15 @@ def cls(v): return "pos" if (isinstance(v,(int,float)) and v>=0) else "neg"
 
 d=load_holdings(); hold=d["holdings"]; tickers=[h["ticker"] for h in hold]
 hist=fetch_history(tickers); info=fetch_info(tickers); live_ok=not hist.empty
+try:
+    FINN_KEY=st.secrets.get("FINNHUB_KEY","")
+except Exception:
+    FINN_KEY=""
+if FINN_KEY:
+    try:
+        for _t,_m in fetch_finnhub(tickers, FINN_KEY).items():
+            info.setdefault(_t,{}).update(_m)
+    except Exception: pass
 
 def last_price(tk,fb):
     if tk in hist.columns and hist[tk].dropna().size: return float(hist[tk].dropna().iloc[-1])
@@ -267,7 +311,7 @@ k[4].metric("Sharpe", numf(sharpe) if sharpe is not None else DASH)
 k[5].metric("Max Drawdown", pctf(mdd) if mdd is not None else DASH)
 st.markdown("<hr>", unsafe_allow_html=True)
 
-tabs=st.tabs(["Overview","Risk","Technicals","Volatility","Options","News","Income","Valuation","Profitability","Theses"])
+tabs=st.tabs(["Overview","Risk","Technicals","Volatility","Options","News","Income","Valuation","Profitability","Theses","Trades"])
 
 def term_table(headers, rows_html):
     h="".join(f"<th>{x}</th>" for x in headers)
@@ -541,5 +585,30 @@ with tabs[9]:
         with st.expander(f"{r['Ticker']}  [{r['Status'] or 'note'}]   ({pctf(r['PnL_pct'])})"):
             st.write(f"**Thesis:** {r['Thesis']}")
             if r["Kill"]: st.write(f"**Kill criteria:** {r['Kill']}")
+
+
+with tabs[10]:
+    st.subheader("Trade history")
+    trades=load_trades()
+    if not trades:
+        st.info("No trade history loaded.")
+    else:
+        LAB={"Buy":GREEN,"Addition":BLUE,"Trim":GOLD,"Sell":RED,"Short":PURPLE,"Cover":PURPLE}
+        from collections import Counter
+        cnt=Counter(t["label"] for t in trades)
+        chips=" &nbsp; ".join(f"<span class='pill' style='background:{LAB.get(k,MUT)}22;color:{LAB.get(k,MUT)}'>{k}: {v}</span>" for k,v in cnt.most_common())
+        st.markdown(f"<div style='margin-bottom:8px'>{chips}</div>", unsafe_allow_html=True)
+        rh=[]
+        for t in trades:
+            col=LAB.get(t["label"],MUT)
+            amt=t.get("amount"); ac=cls(amt) if isinstance(amt,(int,float)) else ""
+            rh.append("<tr>"
+                f"<td>{t['date']}</td><td class='tk'>{t['ticker']}</td>"
+                f"<td style='text-align:left'><span class='pill' style='background:{col}22;color:{col}'>{t['label']}</span></td>"
+                f"<td>{t['shares']:,.4f}</td>"
+                f"<td>{money(t['price'],2) if isinstance(t.get('price'),(int,float)) else DASH}</td>"
+                f"<td class='{ac}'>{money(amt,2) if isinstance(amt,(int,float)) else DASH}</td></tr>")
+        st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount"],rh), unsafe_allow_html=True)
+        st.caption("Buy = new position - Addition = added to existing - Trim = partial sell - Sell = closed - Short = short sale.")
 
 st.markdown(f"<hr><div class='mono' style='color:{MUT};text-align:center'>&gt; session.active &nbsp;.&nbsp; MISPRICED? &nbsp;.&nbsp; {datetime.date.today().isoformat()} &nbsp;|&nbsp; not financial advice</div>", unsafe_allow_html=True)
