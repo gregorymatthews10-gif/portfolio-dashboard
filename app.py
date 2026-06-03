@@ -1,8 +1,8 @@
 """
- - live portfolio terminal (Streamlit).
+Live portfolio terminal (Streamlit).
 Holdings/cost basis from holdings.json; prices, history & fundamentals fetched live
 from yfinance on load, with graceful fallback so the page always renders.
-Dark terminal styling modeled on Mispriced Assets (Nick Nemeth).
+Dark terminal styling.
 """
 import json, datetime, math, time
 import numpy as np
@@ -11,7 +11,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Mispriced? - Live Portfolio", page_icon="chart_with_upwards_trend", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Portfolio Terminal", page_icon="chart_with_upwards_trend", layout="wide", initial_sidebar_state="collapsed")
 
 BG="#0d1117"; PANEL="#131a24"; GRID="#1e2733"; TXT="#d6dde6"; MUT="#7d8896"
 GREEN="#16c784"; RED="#ea3943"; BLUE="#4d9fff"; PURPLE="#a371f7"; GOLD="#e3b341"
@@ -611,4 +611,4 @@ with tabs[10]:
         st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount"],rh), unsafe_allow_html=True)
         st.caption("Buy = new position - Addition = added to existing - Trim = partial sell - Sell = closed - Short = short sale.")
 
-st.markdown(f"<hr><div class='mono' style='color:{MUT};text-align:center'>&gt; session.active &nbsp;.&nbsp; MISPRICED? &nbsp;.&nbsp; {datetime.date.today().isoformat()} &nbsp;|&nbsp; not financial advice</div>", unsafe_allow_html=True)
+st.markdown(f"<hr><div class='mono' style='color:{MUT};text-align:center'>&gt; session.active &nbsp;.&nbsp; PORTFOLIO TERMINAL &nbsp;.&nbsp; {datetime.date.today().isoformat()} &nbsp;|&nbsp; not financial advice</div>", unsafe_allow_html=True)
