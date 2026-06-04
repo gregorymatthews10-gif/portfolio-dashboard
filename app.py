@@ -167,6 +167,8 @@ try:
     FINN_KEY=st.secrets.get("FINNHUB_KEY","")
 except Exception:
     FINN_KEY=""
+if not FINN_KEY:
+    FINN_KEY="d8felvhr01qn4439jj8gd8felvhr01qn4439jj90"  # fallback so fundamentals work without Secrets setup
 if FINN_KEY:
     try:
         for _t,_m in fetch_finnhub(tickers, FINN_KEY).items():
