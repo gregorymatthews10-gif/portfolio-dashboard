@@ -420,8 +420,8 @@ with tabs[1]:
           ("Dot-Com Bust (2000-02)",-.491),("Black Monday (1987)",-.204),("Aug 2024 Yen Carry",-.084)]
     sr=pd.DataFrame([dict(Scenario=s,**{"Market Move":pctf(mv,1),"Portfolio Impact":pctf(mv*pb,1),
         "Stressed NAV":money(nav*(1+mv*pb)),"P&L":money(nav*mv*pb)}) for s,mv in scen])
-st.caption(f"Portfolio beta (bottom-up) ~ {pb:.2f}. Long-only book, no short hedge.")
-st.dataframe(sr, width='stretch', hide_index=True)
+    st.caption(f"Portfolio beta (bottom-up) ~ {pb:.2f}. Long-only book, no short hedge.")
+    st.dataframe(sr, width='stretch', hide_index=True)
     c1,c2=st.columns(2)
     with c1:
         st.subheader("Tail risk")
