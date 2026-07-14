@@ -1,5 +1,189 @@
 [
   {
+    "date": "07/13/2026",
+    "ticker": "ENTG",
+    "label": "Buy",
+    "shares": 3.0,
+    "price": 138.57,
+    "amount": -415.71
+  },
+  {
+    "date": "07/13/2026",
+    "ticker": "Q",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 141.83,
+    "amount": -283.66
+  },
+  {
+    "date": "07/08/2026",
+    "ticker": "CRWV",
+    "label": "Sell",
+    "shares": 9.0,
+    "price": 86.7504,
+    "amount": 780.73
+  },
+  {
+    "date": "07/02/2026",
+    "ticker": "OSCR",
+    "label": "Trim",
+    "shares": 3.0,
+    "price": 32.355,
+    "amount": 97.07
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "GRPN",
+    "label": "Trim",
+    "shares": 5.0,
+    "price": 23.5648,
+    "amount": 117.82
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "SPXU",
+    "label": "Sell",
+    "shares": 15.0,
+    "price": 38.55,
+    "amount": 578.24
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "BABA",
+    "label": "Buy",
+    "shares": 3.0,
+    "price": 95.97,
+    "amount": -287.91
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "FRMI",
+    "label": "Buy",
+    "shares": 110.0,
+    "price": 9.5899,
+    "amount": -1054.89
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "SPXU",
+    "label": "Buy",
+    "shares": 15.0,
+    "price": 38.53,
+    "amount": -577.95
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "GOOGL",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 342.49,
+    "amount": 342.48
+  },
+  {
+    "date": "06/29/2026",
+    "ticker": "NVDA",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 193.65,
+    "amount": 193.65
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "VST",
+    "label": "Buy",
+    "shares": 3.0,
+    "price": 166.05,
+    "amount": -498.15
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "CEG",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 264.59,
+    "amount": -529.18
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "CRDO",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 256.6399,
+    "amount": -513.28
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "AMZN",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 231.655,
+    "amount": 231.66
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "META",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 554.0201,
+    "amount": 554.01
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "JAKK",
+    "label": "Trim",
+    "shares": 7.0,
+    "price": 23.5198,
+    "amount": 164.64
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "MUSA",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 521.27,
+    "amount": 521.26
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "MSFT",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 368.53,
+    "amount": 368.52
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "AMZN",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 231.51,
+    "amount": 231.51
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "GOOGL",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 343.56,
+    "amount": 343.55
+  },
+  {
+    "date": "06/26/2026",
+    "ticker": "STEP",
+    "label": "Cover",
+    "shares": 20.0,
+    "price": 41.07,
+    "amount": -821.4
+  },
+  {
+    "date": "06/25/2026",
+    "ticker": "GRPN",
+    "label": "Trim",
+    "shares": 6.0,
+    "price": 20.72,
+    "amount": 124.32
+  },
+  {
     "date": "06/03/2026",
     "ticker": "GRPN",
     "label": "Addition",
