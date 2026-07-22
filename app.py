@@ -32,6 +32,7 @@ table.term th {{ text-align:right; color:{MUT}; font-weight:600; padding:7px 10p
 table.term th:nth-child(-n+2), table.term td:nth-child(-n+2) {{ text-align:left; }}
 table.term td {{ text-align:right; padding:7px 10px; border-bottom:1px solid {GRID}; }}
 table.term tr:hover td {{ background:{GRID}; }}
+table.term.act th:nth-child(3), table.term.act td:nth-child(3) {{ text-align:left; }}
 .tk {{ color:{BLUE}; font-weight:700; }}
 .pos {{ color:{GREEN}; }} .neg {{ color:{RED}; }}
 .pill {{ padding:2px 9px; border-radius:4px; font-size:.72rem; font-weight:700; letter-spacing:.03em; }}
@@ -323,9 +324,9 @@ st.markdown("<hr>", unsafe_allow_html=True)
 
 tabs=st.tabs(["Overview","Risk","Technicals","Volatility","Options","News","Income","Valuation","Profitability","Theses","Activity"])
 
-def term_table(headers, rows_html):
+def term_table(headers, rows_html, extra_cls=""):
     h="".join(f"<th>{x}</th>" for x in headers)
-    return f"<table class='term'><thead><tr>{h}</tr></thead><tbody>{''.join(rows_html)}</tbody></table>"
+    return f"<table class='term {extra_cls}'><thead><tr>{h}</tr></thead><tbody>{''.join(rows_html)}</tbody></table>"
 
 with tabs[0]:
     if len(pr):
@@ -514,7 +515,7 @@ with tabs[2]:
             f"<td>{numf(r,0) if r is not None else DASH} {rdot}</td>"
             f"<td>{dot(g['macd'])}</td><td>{dot(g['trend'])}</td><td>{dot(g['bb'])}</td>"
             f"<td>{dot(g['vol'])}</td><td>{dot(g['rng'])}</td></tr>")
-    st.markdown(term_table(["Ticker","Signal","Composite","RSI","MACD","Trend","BB","Vol","Range"],rhtml), unsafe_allow_html=True)
+    st.markdown(term_table(["Ticker","Signal","Composite","RSI","MACD","Trend","BB","Vol","Range"],rhtml,"act"), unsafe_allow_html=True)
     st.caption("Composite (-2 to +2) = RSI (oversold +/overbought -) + MACD cross + trend vs 50d SMA + Bollinger position, "
                "plus quarter-weight volume confirmation and 52w-range position. Educational, not a recommendation.")
 
@@ -712,7 +713,7 @@ with tabs[10]:
                 f"<td>{money(entry,2) if entry is not None else DASH}</td>"
                 f"<td class='{cls(pnl) if pnl is not None else ''}'>{money(pnl,2) if pnl is not None else DASH}</td>"
                 f"<td class='{cls(ret) if ret is not None else ''}'>{pctf(ret) if ret is not None else DASH}</td></tr>")
-        st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount","Cost Basis","P&L ($)","P&L %"],rh), unsafe_allow_html=True)
+        st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount","Cost Basis","P&L ($)","P&L %"],rh,"act"), unsafe_allow_html=True)
         st.caption("One line per trade, newest first; cost basis and realized P&L shown on closing trades "
                    "(avg-cost matching over the full log, account inception Jan 2024; reinvest fractions excluded, gross of fees). "
                    "Buy = new position - Addition = added to existing - Trim = partial sell - Sell = full exit - Short = short sale - Cover = short buyback.")
