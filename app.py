@@ -659,6 +659,7 @@ with tabs[10]:
             if amt<0:  # cash out = buying shares
                 if sh<0:  # covering a short
                     m=min(q,-sh); pnl=(avg-p)*m
+                    t["_entry"],t["_pnl"],t["_ret"]=avg,pnl,(pnl/(avg*m) if avg*m else 0)
                     closed.append(dict(Date=t["date"],Ticker=tk,Type="Short cover",Shares=m,Entry=avg,Exit=p,PnL=pnl))
                     sh+=m; rem=q-m
                     if rem>0: sh,avg=rem,p
@@ -669,6 +670,7 @@ with tabs[10]:
                     tot=abs(sh)*avg+q*p; sh-=q; avg=tot/abs(sh) if sh else 0.0
                 elif sh>0:
                     m=min(q,sh); pnl=(p-avg)*m
+                    t["_entry"],t["_pnl"],t["_ret"]=avg,pnl,(pnl/(avg*m) if avg*m else 0)
                     closed.append(dict(Date=t["date"],Ticker=tk,Type="Long "+("exit" if m>=sh else "trim"),Shares=m,Entry=avg,Exit=p,PnL=pnl))
                     sh-=m
                 # sells with no logged basis (position pre-dates the log) are skipped
@@ -688,21 +690,9 @@ with tabs[10]:
                         f"Largest win: <span class='pos'>{money(big_w['PnL'],0)} ({big_w['Ticker']})</span> &nbsp;&middot;&nbsp; "
                         f"Largest loss: <span class='neg'>{money(big_l['PnL'],0)} ({big_l['Ticker']})</span> &nbsp;&middot;&nbsp; "
                         f"{len(closed)} closed trades</div>", unsafe_allow_html=True)
-            rh=[]
-            for c in sorted(closed,key=lambda c:_pdate(c),reverse=True):
-                ret=c["PnL"]/(c["Entry"]*c["Shares"]) if c["Entry"]*c["Shares"] else 0
-                rh.append(f"<tr><td>{c['Date']}</td><td class='tk'>{c['Ticker']}</td>"
-                    f"<td style='text-align:left'>{c['Type']}</td>"
-                    f"<td>{c['Shares']:,.2f}</td><td>{money(c['Entry'],2)}</td><td>{money(c['Exit'],2)}</td>"
-                    f"<td class='{cls(c['PnL'])}'>{money(c['PnL'],2)}</td>"
-                    f"<td class='{cls(ret)}'>{pctf(ret)}</td></tr>")
-            st.markdown(term_table(["Date","Ticker","Type","Shares","Entry","Exit","P&L ($)","P&L %"],rh), unsafe_allow_html=True)
-            st.caption("Avg-cost lot matching over the full trade log (account inception Jan 2024). "
-                       "Dividend-reinvest fractions excluded; realized P&L is gross of fees.")
         else:
             st.info("No matched round trips in the trade log yet.")
         st.markdown("<hr>", unsafe_allow_html=True)
-        st.subheader("Trade history")
         LAB={"Buy":GREEN,"Addition":BLUE,"Trim":GOLD,"Sell":RED,"Short":PURPLE,"Cover":PURPLE}
         from collections import Counter
         cnt=Counter(t["label"] for t in trades)
@@ -712,13 +702,19 @@ with tabs[10]:
         for t in trades:
             col=LAB.get(t["label"],MUT)
             amt=t.get("amount"); ac=cls(amt) if isinstance(amt,(int,float)) else ""
+            pnl=t.get("_pnl"); entry=t.get("_entry"); ret=t.get("_ret")
             rh.append("<tr>"
                 f"<td>{t['date']}</td><td class='tk'>{t['ticker']}</td>"
                 f"<td style='text-align:left'><span class='pill' style='background:{col}22;color:{col}'>{t['label']}</span></td>"
                 f"<td>{t['shares']:,.4f}</td>"
                 f"<td>{money(t['price'],2) if isinstance(t.get('price'),(int,float)) else DASH}</td>"
-                f"<td class='{ac}'>{money(amt,2) if isinstance(amt,(int,float)) else DASH}</td></tr>")
-        st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount"],rh), unsafe_allow_html=True)
-        st.caption("Buy = new position - Addition = added to existing - Trim = partial sell - Sell = closed - Short = short sale - Cover = short buyback.")
+                f"<td class='{ac}'>{money(amt,2) if isinstance(amt,(int,float)) else DASH}</td>"
+                f"<td>{money(entry,2) if entry is not None else DASH}</td>"
+                f"<td class='{cls(pnl) if pnl is not None else ''}'>{money(pnl,2) if pnl is not None else DASH}</td>"
+                f"<td class='{cls(ret) if ret is not None else ''}'>{pctf(ret) if ret is not None else DASH}</td></tr>")
+        st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount","Cost Basis","P&L ($)","P&L %"],rh), unsafe_allow_html=True)
+        st.caption("One line per trade, newest first; cost basis and realized P&L shown on closing trades "
+                   "(avg-cost matching over the full log, account inception Jan 2024; reinvest fractions excluded, gross of fees). "
+                   "Buy = new position - Addition = added to existing - Trim = partial sell - Sell = full exit - Short = short sale - Cover = short buyback.")
 
 st.markdown(f"<hr><div class='mono' style='color:{MUT};text-align:center'>&gt; session.active &nbsp;.&nbsp; PORTFOLIO TERMINAL &nbsp;.&nbsp; {datetime.date.today().isoformat()} &nbsp;|&nbsp; not financial advice</div>", unsafe_allow_html=True)
