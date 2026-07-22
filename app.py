@@ -54,6 +54,14 @@ def fetch_history(tickers):
         if isinstance(h,pd.Series): h=h.to_frame(tickers[0])
         return h.dropna(how="all")
     except Exception: return pd.DataFrame()
+@st.cache_data(ttl=600)
+def fetch_volume(tickers):
+    try:
+        import yfinance as yf
+        v=yf.download(tickers, period="6mo", progress=False, auto_adjust=True)["Volume"]
+        if isinstance(v,pd.Series): v=v.to_frame(tickers[0])
+        return v.dropna(how="all")
+    except Exception: return pd.DataFrame()
 def _yf_session():
     """Browser-impersonating session to dodge Yahoo rate-limiting on shared hosts."""
     try:
@@ -295,7 +303,7 @@ def fetch_options(tickers):
                         best=(diff,dict(Ticker=t,Expiry=exp,Strike=K,Mid=mid,DTE=dte,Delta=delta,
                                         BE=be,PWin=pwin,IV=iv,Liq=liq))
                 if best:
-                    out.append(o)
+                    out.append(best[1])
             except Exception: continue
     except Exception: pass
     return out
@@ -441,35 +449,74 @@ with tabs[1]:
         st.dataframe(pd.DataFrame(lr), width='stretch', hide_index=True, height=300)
 
 with tabs[2]:
-    st.subheader("Technical signals (RSI + MACD)")
-    def macd_sig(tk):
-        if tk not in hist.columns: return None
-        s=hist[tk].dropna()
-        if len(s)<35: return None
-        macd=s.ewm(span=12).mean()-s.ewm(span=26).mean(); sig=macd.ewm(span=9).mean()
-        return 1 if macd.iloc[-1]>sig.iloc[-1] else -1
-    PILL={"STRONG BUY":GREEN,"BUY":GREEN,"LEAN BULL":BLUE,"NEUTRAL":MUT,"LEAN BEAR":PURPLE,"SELL":RED}
-    trows=[]
-    for t in tickers:
-        s=hist[t].dropna() if t in hist.columns else pd.Series(dtype=float); r=None
+    st.subheader("Technical signals")
+    vols=fetch_volume(tickers)
+    def dot(v):
+        c=GREEN if (v is not None and v>0) else RED if (v is not None and v<0) else "#3a4452"
+        return f"<span style='color:{c};font-size:.95rem'>&#9679;</span>"
+    def comp_bar(c):
+        mag=min(abs(c),2)/2*50
+        color=GREEN if c>0 else RED if c<0 else MUT
+        left=50 if c>=0 else 50-mag
+        return (f"<span style='display:inline-block;width:110px;height:12px;background:{BG};"
+                f"border:1px solid {GRID};border-radius:2px;position:relative;vertical-align:middle;margin-right:8px'>"
+                f"<span style='position:absolute;left:50%;top:0;bottom:0;width:1px;background:{GRID}'></span>"
+                f"<span style='position:absolute;left:{left}%;width:{mag}%;top:1px;bottom:1px;background:{color};border-radius:1px'></span></span>")
+    def tech_signals(t):
+        s=hist[t].dropna() if t in hist.columns else pd.Series(dtype=float)
+        out=dict(rsi=None,rsi_s=None,macd=None,trend=None,bb=None,vol=None,rng=None)
         if len(s)>=15:
             delta=s.diff(); up=delta.clip(lower=0).rolling(14).mean(); dn=(-delta.clip(upper=0)).rolling(14).mean()
-            rs=up/dn.replace(0,np.nan); r=float(100-100/(1+rs.iloc[-1])) if not np.isnan(rs.iloc[-1]) else None
-        mac=macd_sig(t)
-        comp=(1 if (r and r>55) else -1 if (r and r<45) else 0)+(mac or 0)
-        sig=("STRONG BUY" if comp>=2 else "BUY" if comp==1 else "SELL" if comp<=-2 else "LEAN BEAR" if comp==-1 else "NEUTRAL")
-        trows.append((comp,t,sig,r,mac))
+            rs=up/dn.replace(0,np.nan)
+            if not np.isnan(rs.iloc[-1]):
+                r=float(100-100/(1+rs.iloc[-1])); out["rsi"]=r
+                out["rsi_s"]=1 if r<=35 else -1 if r>=65 else 0
+        if len(s)>=35:
+            macd=s.ewm(span=12).mean()-s.ewm(span=26).mean(); sig=macd.ewm(span=9).mean()
+            out["macd"]=1 if macd.iloc[-1]>sig.iloc[-1] else -1
+        if len(s)>=50:
+            sma50=float(s.rolling(50).mean().iloc[-1])
+            out["trend"]=1 if float(s.iloc[-1])>sma50 else -1
+        if len(s)>=20:
+            mid=s.rolling(20).mean(); sd=s.rolling(20).std()
+            px_=float(s.iloc[-1]); lo=float((mid-2*sd).iloc[-1]); hi=float((mid+2*sd).iloc[-1])
+            out["bb"]=1 if px_<=lo else -1 if px_>=hi else 0
+        if t in vols.columns:
+            v=vols[t].dropna()
+            if len(v)>=60 and len(s)>=6:
+                v20=float(v.tail(20).mean()); v60=float(v.tail(60).mean())
+                wk=float(s.iloc[-1]/s.iloc[-6]-1)
+                out["vol"]=(1 if wk>0 else -1) if (v60 and v20/v60>1.25) else 0
+        if len(s)>=120:
+            lo52=float(s.min()); hi52=float(s.max()); px_=float(s.iloc[-1])
+            if hi52>lo52:
+                pos=(px_-lo52)/(hi52-lo52)
+                out["rng"]=1 if pos<=0.30 else -1 if pos>=0.85 else 0
+        return out
+    PILL={"STRONG BUY":GREEN,"BUY":GREEN,"LEAN BULL":BLUE,"NEUTRAL":MUT,"LEAN BEAR":PURPLE,"SELL":RED,"STRONG SELL":RED}
+    trows=[]
+    for t in tickers:
+        g=tech_signals(t)
+        comp=0.5*((g["rsi_s"] or 0)+(g["macd"] or 0)+(g["trend"] or 0)+(g["bb"] or 0))+0.25*((g["vol"] or 0)+(g["rng"] or 0))
+        comp=max(-2.0,min(2.0,comp))
+        sig=("STRONG BUY" if comp>=1.75 else "BUY" if comp>=1 else "LEAN BULL" if comp>=0.5 else
+             "STRONG SELL" if comp<=-1.75 else "SELL" if comp<=-1 else "LEAN BEAR" if comp<=-0.5 else "NEUTRAL")
+        trows.append((comp,t,sig,g))
     trows.sort(key=lambda x:-x[0])
     rhtml=[]
-    for comp,t,sig,r,mac in trows:
+    for comp,t,sig,g in trows:
         col=PILL.get(sig,MUT)
+        r=g["rsi"]
+        rdot=dot(1 if (r is not None and r<=35) else -1 if (r is not None and r>=65) else 0 if r is not None else None)
         rhtml.append(f"<tr><td class='tk'>{t}</td>"
             f"<td style='text-align:left'><span class='pill' style='background:{col}22;color:{col}'>{sig}</span></td>"
-            f"<td class='{ 'pos' if comp>0 else 'neg' if comp<0 else ''}'>{comp:+d}</td>"
-            f"<td>{numf(r,0) if r is not None else DASH}</td>"
-            f"<td class='{ 'pos' if mac==1 else 'neg' if mac==-1 else ''}'>{'up' if mac==1 else 'down' if mac==-1 else DASH}</td></tr>")
-    st.markdown(term_table(["Ticker","Signal","Composite","RSI","MACD"],rhtml), unsafe_allow_html=True)
-    st.caption("Composite = RSI signal (>55 bull / <45 bear) + MACD cross. Educational, not a recommendation.")
+            f"<td style='text-align:left'>{comp_bar(comp)}<span class='{ 'pos' if comp>0 else 'neg' if comp<0 else ''}'>{comp:+.2f}</span></td>"
+            f"<td>{numf(r,0) if r is not None else DASH} {rdot}</td>"
+            f"<td>{dot(g['macd'])}</td><td>{dot(g['trend'])}</td><td>{dot(g['bb'])}</td>"
+            f"<td>{dot(g['vol'])}</td><td>{dot(g['rng'])}</td></tr>")
+    st.markdown(term_table(["Ticker","Signal","Composite","RSI","MACD","Trend","BB","Vol","Range"],rhtml), unsafe_allow_html=True)
+    st.caption("Composite (-2 to +2) = RSI (oversold +/overbought -) + MACD cross + trend vs 50d SMA + Bollinger position, "
+               "plus quarter-weight volume confirmation and 52w-range position. Educational, not a recommendation.")
 
 with tabs[3]:
     st.subheader("Volatility - realized vs GARCH(1,1) forecast")
