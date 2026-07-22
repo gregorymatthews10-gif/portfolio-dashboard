@@ -1,8 +1,32 @@
 [
   {
+    "date": "07/21/2026",
+    "ticker": "CRSR",
+    "label": "Sell",
+    "shares": 90.0,
+    "price": 9.8416,
+    "amount": 885.7
+  },
+  {
     "date": "07/20/2026",
     "ticker": "COHR",
     "label": "Buy",
+    "shares": 1.0,
+    "price": 286.84,
+    "amount": -286.84
+  },
+  {
+    "date": "07/20/2026",
+    "ticker": "MRVL",
+    "label": "Buy",
+    "shares": 4.0,
+    "price": 194.9,
+    "amount": -779.6
+  },
+  {
+    "date": "07/20/2026",
+    "ticker": "COHR",
+    "label": "Addition",
     "shares": 3.0,
     "price": 291.21,
     "amount": -873.63
