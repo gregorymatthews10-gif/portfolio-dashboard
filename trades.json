@@ -10,7 +10,7 @@
   {
     "date": "07/20/2026",
     "ticker": "COHR",
-    "label": "Buy",
+    "label": "Addition",
     "shares": 1.0,
     "price": 286.84,
     "amount": -286.84
@@ -26,7 +26,7 @@
   {
     "date": "07/20/2026",
     "ticker": "COHR",
-    "label": "Addition",
+    "label": "Buy",
     "shares": 3.0,
     "price": 291.21,
     "amount": -873.63
@@ -450,7 +450,7 @@
   {
     "date": "04/15/2026",
     "ticker": "APO",
-    "label": "Addition",
+    "label": "Cover",
     "shares": 9.0,
     "price": 118.16,
     "amount": -1063.44
@@ -458,7 +458,7 @@
   {
     "date": "04/15/2026",
     "ticker": "KKR",
-    "label": "Addition",
+    "label": "Cover",
     "shares": 10.0,
     "price": 102.91,
     "amount": -1029.1
@@ -726,5 +726,253 @@
     "shares": 2.5,
     "price": 639.18,
     "amount": 1597.95
+  },
+  {
+    "date": "12/01/2025",
+    "ticker": "MUSA",
+    "label": "Trim",
+    "shares": 1.0,
+    "price": 384.89,
+    "amount": 384.89
+  },
+  {
+    "date": "10/16/2025",
+    "ticker": "MSTR",
+    "label": "Sell",
+    "shares": 2.0,
+    "price": 300.02,
+    "amount": 600.04
+  },
+  {
+    "date": "08/18/2025",
+    "ticker": "ORGN",
+    "label": "Sell",
+    "shares": 10.0,
+    "price": 0.55,
+    "amount": 5.5
+  },
+  {
+    "date": "08/08/2025",
+    "ticker": "MUSA",
+    "label": "Buy",
+    "shares": 8.0,
+    "price": 376.0301,
+    "amount": -3008.24
+  },
+  {
+    "date": "08/08/2025",
+    "ticker": "META",
+    "label": "Trim",
+    "shares": 4.0,
+    "price": 763.0,
+    "amount": 3052.0
+  },
+  {
+    "date": "08/05/2025",
+    "ticker": "MSTR",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 383.89,
+    "amount": -767.78
+  },
+  {
+    "date": "07/29/2025",
+    "ticker": "CRSP",
+    "label": "Sell",
+    "shares": 15.0,
+    "price": 59.38,
+    "amount": 890.7
+  },
+  {
+    "date": "07/29/2025",
+    "ticker": "AMZN",
+    "label": "Addition",
+    "shares": 9.0,
+    "price": 233.56,
+    "amount": -2102.04
+  },
+  {
+    "date": "07/22/2025",
+    "ticker": "GOOGL",
+    "label": "Addition",
+    "shares": 11.0,
+    "price": 191.43,
+    "amount": -2105.73
+  },
+  {
+    "date": "07/22/2025",
+    "ticker": "CRSP",
+    "label": "Buy",
+    "shares": 15.0,
+    "price": 64.67,
+    "amount": -970.05
+  },
+  {
+    "date": "07/10/2025",
+    "ticker": "TSLA",
+    "label": "Buy",
+    "shares": 4.0,
+    "price": 304.32,
+    "amount": -1217.28
+  },
+  {
+    "date": "06/26/2025",
+    "ticker": "LMT",
+    "label": "Sell",
+    "shares": 2.0,
+    "price": 459.31,
+    "amount": 918.62
+  },
+  {
+    "date": "06/26/2025",
+    "ticker": "RTX",
+    "label": "Sell",
+    "shares": 4.0,
+    "price": 141.91,
+    "amount": 567.64
+  },
+  {
+    "date": "06/18/2025",
+    "ticker": "LMT",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 474.95,
+    "amount": -949.9
+  },
+  {
+    "date": "06/18/2025",
+    "ticker": "AAPL",
+    "label": "Sell",
+    "shares": 4.0283,
+    "price": 195.3504,
+    "amount": 786.93
+  },
+  {
+    "date": "06/18/2025",
+    "ticker": "RTX",
+    "label": "Buy",
+    "shares": 4.0,
+    "price": 148.845,
+    "amount": -595.38
+  },
+  {
+    "date": "06/18/2025",
+    "ticker": "TSLA",
+    "label": "Sell",
+    "shares": 2.0,
+    "price": 317.31,
+    "amount": 634.62
+  },
+  {
+    "date": "06/17/2025",
+    "ticker": "TSLA",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 323.14,
+    "amount": -646.28
+  },
+  {
+    "date": "06/17/2025",
+    "ticker": "LHX",
+    "label": "Buy",
+    "shares": 6.0,
+    "price": 247.8776,
+    "amount": -1487.27
+  },
+  {
+    "date": "02/04/2025",
+    "ticker": "ORGN",
+    "label": "Buy",
+    "shares": 10.0,
+    "price": 0.9579,
+    "amount": -9.58
+  },
+  {
+    "date": "02/03/2025",
+    "ticker": "NVDA",
+    "label": "Buy",
+    "shares": 14.0,
+    "price": 115.7391,
+    "amount": -1620.35
+  },
+  {
+    "date": "04/24/2024",
+    "ticker": "META",
+    "label": "Addition",
+    "shares": 14.0,
+    "price": 495.7099,
+    "amount": -6939.94
+  },
+  {
+    "date": "04/09/2024",
+    "ticker": "JD",
+    "label": "Sell",
+    "shares": 4.0,
+    "price": 26.1,
+    "amount": 104.4
+  },
+  {
+    "date": "04/02/2024",
+    "ticker": "SOFI",
+    "label": "Buy",
+    "shares": 50.0,
+    "price": 7.04,
+    "amount": -352.0
+  },
+  {
+    "date": "04/02/2024",
+    "ticker": "JD",
+    "label": "Buy",
+    "shares": 4.0,
+    "price": 27.7,
+    "amount": -110.8
+  },
+  {
+    "date": "02/01/2024",
+    "ticker": "INTC",
+    "label": "Sell",
+    "shares": 2.0,
+    "price": 43.0222,
+    "amount": 86.04
+  },
+  {
+    "date": "02/01/2024",
+    "ticker": "INTC",
+    "label": "Buy",
+    "shares": 2.0,
+    "price": 42.8284,
+    "amount": -85.66
+  },
+  {
+    "date": "02/01/2024",
+    "ticker": "GOOGL",
+    "label": "Buy",
+    "shares": 1.0,
+    "price": 141.7488,
+    "amount": -141.75
+  },
+  {
+    "date": "01/31/2024",
+    "ticker": "AMZN",
+    "label": "Buy",
+    "shares": 4.0,
+    "price": 155.84,
+    "amount": -623.36
+  },
+  {
+    "date": "01/31/2024",
+    "ticker": "AAPL",
+    "label": "Buy",
+    "shares": 4.0,
+    "price": 186.41,
+    "amount": -745.64
+  },
+  {
+    "date": "01/31/2024",
+    "ticker": "META",
+    "label": "Buy",
+    "shares": 1.0,
+    "price": 388.71,
+    "amount": -388.71
   }
 ]

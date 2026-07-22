@@ -321,7 +321,7 @@ k[4].metric("Sharpe", numf(sharpe) if sharpe is not None else DASH)
 k[5].metric("Max Drawdown", pctf(mdd) if mdd is not None else DASH)
 st.markdown("<hr>", unsafe_allow_html=True)
 
-tabs=st.tabs(["Overview","Risk","Technicals","Volatility","Options","News","Income","Valuation","Profitability","Theses","Trades"])
+tabs=st.tabs(["Overview","Risk","Technicals","Volatility","Options","News","Income","Valuation","Profitability","Theses","Activity"])
 
 def term_table(headers, rows_html):
     h="".join(f"<th>{x}</th>" for x in headers)
@@ -637,11 +637,72 @@ with tabs[9]:
 
 
 with tabs[10]:
-    st.subheader("Trade history")
     trades=load_trades()
     if not trades:
         st.info("No trade history loaded.")
     else:
+        # ---------------- track record: realized P&L from matched round trips ----------------
+        st.markdown(f"<div class='mono' style='margin-bottom:6px'><span style='color:{GREEN}'>&gt;</span> "
+                    f"<b>TRACK RECORD</b> &nbsp;<span style='color:{MUT}'>closed trades &middot; realized P&amp;L</span></div>",
+                    unsafe_allow_html=True)
+        def _pdate(t):
+            try: return datetime.datetime.strptime(t["date"],"%m/%d/%Y")
+            except Exception: return datetime.datetime.min
+        seq=sorted(reversed(trades), key=_pdate)   # oldest first; stable within same day
+        book={}   # ticker -> [signed shares, avg price]
+        closed=[]
+        for t in seq:
+            tk=t["ticker"]; q=float(t.get("shares") or 0); p=float(t.get("price") or 0)
+            amt=t.get("amount") or 0; lab=t.get("label","")
+            if q<=0 or p<=0: continue
+            sh,avg=book.get(tk,[0.0,0.0])
+            if amt<0:  # cash out = buying shares
+                if sh<0:  # covering a short
+                    m=min(q,-sh); pnl=(avg-p)*m
+                    closed.append(dict(Date=t["date"],Ticker=tk,Type="Short cover",Shares=m,Entry=avg,Exit=p,PnL=pnl))
+                    sh+=m; rem=q-m
+                    if rem>0: sh,avg=rem,p
+                else:
+                    avg=(sh*avg+q*p)/(sh+q) if (sh+q)>0 else p; sh+=q
+            elif amt>0:  # cash in = selling shares
+                if lab=="Short" and sh<=0:  # opening/adding a short
+                    tot=abs(sh)*avg+q*p; sh-=q; avg=tot/abs(sh) if sh else 0.0
+                elif sh>0:
+                    m=min(q,sh); pnl=(p-avg)*m
+                    closed.append(dict(Date=t["date"],Ticker=tk,Type="Long "+("exit" if m>=sh else "trim"),Shares=m,Entry=avg,Exit=p,PnL=pnl))
+                    sh-=m
+                # sells with no logged basis (position pre-dates the log) are skipped
+            book[tk]=[sh,avg]
+        if closed:
+            wins=[c for c in closed if c["PnL"]>0]; losses=[c for c in closed if c["PnL"]<=0]
+            gw=sum(c["PnL"] for c in wins); gl=-sum(c["PnL"] for c in losses)
+            pfac=(gw/gl) if gl>0 else None
+            big_w=max(closed,key=lambda c:c["PnL"]); big_l=min(closed,key=lambda c:c["PnL"])
+            tm=st.columns(5)
+            tm[0].metric("Realized P&L", money(sum(c["PnL"] for c in closed),0))
+            tm[1].metric("Hit Rate", pctf(len(wins)/len(closed),0,False), f"{len(wins)}W / {len(losses)}L")
+            tm[2].metric("Profit Factor", numf(pfac) if pfac is not None else DASH)
+            tm[3].metric("Avg Winner", money(gw/len(wins),0) if wins else DASH)
+            tm[4].metric("Avg Loser", money(-gl/len(losses),0) if losses else DASH)
+            st.markdown(f"<div class='mono' style='color:{MUT};font-size:.78rem;margin:2px 0 10px'>"
+                        f"Largest win: <span class='pos'>{money(big_w['PnL'],0)} ({big_w['Ticker']})</span> &nbsp;&middot;&nbsp; "
+                        f"Largest loss: <span class='neg'>{money(big_l['PnL'],0)} ({big_l['Ticker']})</span> &nbsp;&middot;&nbsp; "
+                        f"{len(closed)} closed trades</div>", unsafe_allow_html=True)
+            rh=[]
+            for c in sorted(closed,key=lambda c:_pdate(c),reverse=True):
+                ret=c["PnL"]/(c["Entry"]*c["Shares"]) if c["Entry"]*c["Shares"] else 0
+                rh.append(f"<tr><td>{c['Date']}</td><td class='tk'>{c['Ticker']}</td>"
+                    f"<td style='text-align:left'>{c['Type']}</td>"
+                    f"<td>{c['Shares']:,.2f}</td><td>{money(c['Entry'],2)}</td><td>{money(c['Exit'],2)}</td>"
+                    f"<td class='{cls(c['PnL'])}'>{money(c['PnL'],2)}</td>"
+                    f"<td class='{cls(ret)}'>{pctf(ret)}</td></tr>")
+            st.markdown(term_table(["Date","Ticker","Type","Shares","Entry","Exit","P&L ($)","P&L %"],rh), unsafe_allow_html=True)
+            st.caption("Avg-cost lot matching over the full trade log (account inception Jan 2024). "
+                       "Dividend-reinvest fractions excluded; realized P&L is gross of fees.")
+        else:
+            st.info("No matched round trips in the trade log yet.")
+        st.markdown("<hr>", unsafe_allow_html=True)
+        st.subheader("Trade history")
         LAB={"Buy":GREEN,"Addition":BLUE,"Trim":GOLD,"Sell":RED,"Short":PURPLE,"Cover":PURPLE}
         from collections import Counter
         cnt=Counter(t["label"] for t in trades)
@@ -658,6 +719,6 @@ with tabs[10]:
                 f"<td>{money(t['price'],2) if isinstance(t.get('price'),(int,float)) else DASH}</td>"
                 f"<td class='{ac}'>{money(amt,2) if isinstance(amt,(int,float)) else DASH}</td></tr>")
         st.markdown(term_table(["Date","Ticker","Action","Shares","Price","Amount"],rh), unsafe_allow_html=True)
-        st.caption("Buy = new position - Addition = added to existing - Trim = partial sell - Sell = closed - Short = short sale.")
+        st.caption("Buy = new position - Addition = added to existing - Trim = partial sell - Sell = closed - Short = short sale - Cover = short buyback.")
 
 st.markdown(f"<hr><div class='mono' style='color:{MUT};text-align:center'>&gt; session.active &nbsp;.&nbsp; PORTFOLIO TERMINAL &nbsp;.&nbsp; {datetime.date.today().isoformat()} &nbsp;|&nbsp; not financial advice</div>", unsafe_allow_html=True)
