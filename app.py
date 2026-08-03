@@ -51,7 +51,7 @@ def load_trades():
 def fetch_history(tickers):
     try:
         import yfinance as yf
-        h=yf.download(tickers+["SPY","IWM"], period="1y", progress=False, auto_adjust=True)["Close"]
+        h=yf.download(tickers+["SPY","IWM"], period="1y", progress=False, auto_adjust=True, session=_yf_session())["Close"]
         if isinstance(h,pd.Series): h=h.to_frame(tickers[0])
         return h.dropna(how="all")
     except Exception: return pd.DataFrame()
@@ -59,7 +59,7 @@ def fetch_history(tickers):
 def fetch_volume(tickers):
     try:
         import yfinance as yf
-        v=yf.download(tickers, period="6mo", progress=False, auto_adjust=True)["Volume"]
+        v=yf.download(tickers, period="6mo", progress=False, auto_adjust=True, session=_yf_session())["Volume"]
         if isinstance(v,pd.Series): v=v.to_frame(tickers[0])
         return v.dropna(how="all")
     except Exception: return pd.DataFrame()
