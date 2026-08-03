@@ -369,7 +369,7 @@ with tabs[0]:
                 figa.add_hline(y=0,line=dict(color=MUT,width=1,dash="dot"))
                 figa.update_layout(**PLOT,height=220,xaxis=dict(gridcolor=GRID),yaxis=dict(gridcolor=GRID,ticksuffix="%"))
                 st.plotly_chart(figa, width='stretch')
-            a,b=st.columns(2)
+    a,b=st.columns(2)
     with a:
         st.subheader("Sector exposure")
         sec=df.groupby("Sector")["MV"].sum().reset_index()
