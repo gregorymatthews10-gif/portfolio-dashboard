@@ -346,7 +346,30 @@ with tabs[0]:
         ymin=float(idx.min().min()); fig.update_yaxes(range=[max(0,ymin-5),float(idx.max().max())+5])
         fig.update_layout(**PLOT,height=340,xaxis=dict(gridcolor=GRID),yaxis=dict(gridcolor=GRID),legend=dict(orientation="h"))
         st.plotly_chart(fig, width='stretch')
-    a,b=st.columns(2)
+    if len(pr) and "IWM" in hist.columns:
+                st.subheader("Alpha vs Russell 2000 (IWM)")
+                bench=hist["IWM"].pct_change().reindex(pr.index).dropna()
+                pa=pr.reindex(bench.index)
+                cum_p=float((1+pa).prod()-1); cum_b=float((1+bench).prod()-1)
+                excess=cum_p-cum_b
+                b_ann=bench.mean()*252
+                jensen=(ann_ret-(beta_iwm*b_ann)) if (ann_ret is not None and beta_iwm is not None) else None
+                te=float((pa-bench).std()*np.sqrt(252)) if len(pa)>2 else None
+                ir=((ann_ret-b_ann)/te) if (ann_ret is not None and te) else None
+                m=st.columns(4)
+                m[0].metric("Cumulative Excess (1Y)", pctf(excess))
+                m[1].metric("Jensen's Alpha (ann.)", pctf(jensen) if jensen is not None else DASH)
+                m[2].metric("Tracking Error (ann.)", pctf(te) if te is not None else DASH)
+                m[3].metric("Information Ratio", numf(ir) if ir is not None else DASH)
+                rel=((1+pa).cumprod()/(1+bench).cumprod()-1)*100
+                figa=go.Figure()
+                figa.add_trace(go.Scatter(x=rel.index,y=rel.values,name="Excess vs IWM",
+                                                      line=dict(color=GREEN if excess>=0 else RED,width=2),fill="tozeroy",
+                                                      fillcolor="rgba(22,199,132,0.10)" if excess>=0 else "rgba(234,57,67,0.10)"))
+                figa.add_hline(y=0,line=dict(color=MUT,width=1,dash="dot"))
+                figa.update_layout(**PLOT,height=220,xaxis=dict(gridcolor=GRID),yaxis=dict(gridcolor=GRID,ticksuffix="%"))
+                st.plotly_chart(figa, width='stretch')
+            a,b=st.columns(2)
     with a:
         st.subheader("Sector exposure")
         sec=df.groupby("Sector")["MV"].sum().reset_index()
