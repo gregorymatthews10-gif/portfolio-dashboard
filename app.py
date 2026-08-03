@@ -41,7 +41,7 @@ hr {{ border-color:{GRID}; margin:.6rem 0; }}
 PLOT=dict(paper_bgcolor=PANEL, plot_bgcolor=PANEL, font=dict(color=TXT), margin=dict(t=30,b=10,l=10,r=10))
 DASH="-"
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=120)
 def load_holdings(): return json.load(open("holdings.json"))
 @st.cache_data(ttl=300)
 def load_trades():
