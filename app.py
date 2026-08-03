@@ -369,6 +369,54 @@ with tabs[0]:
                 figa.add_hline(y=0,line=dict(color=MUT,width=1,dash="dot"))
                 figa.update_layout(**PLOT,height=220,xaxis=dict(gridcolor=GRID),yaxis=dict(gridcolor=GRID,ticksuffix="%"))
                 st.plotly_chart(figa, width='stretch')
+    rz_tr=load_trades()
+    if len(rz_tr):
+        st.subheader("Realized Performance (TWR) vs Russell 2000")
+        @st.cache_data(ttl=3600)
+        def _twr_series(n_trades):
+            try:
+                import yfinance as yf
+                tr=pd.DataFrame(load_trades())
+                tr=tr[tr["label"].isin(["Buy","Addition","Trim","Sell","Short","Cover"])].copy()
+                tr["date"]=pd.to_datetime(tr["date"],format="%m/%d/%Y")
+                tr["signed"]=np.where(tr["label"].isin(["Buy","Addition","Cover"]),tr["shares"],-tr["shares"])
+                tks=sorted(tr["ticker"].unique().tolist())
+                start=(tr["date"].min()-pd.Timedelta(days=5)).strftime("%Y-%m-%d")
+                px_=yf.download(tks+["IWM"],start=start,progress=False,auto_adjust=True,session=_yf_session())["Close"]
+                if isinstance(px_,pd.Series): px_=px_.to_frame(tks[0])
+                px_=px_.dropna(how="all").ffill()
+                sh=tr.pivot_table(index="date",columns="ticker",values="signed",aggfunc="sum").reindex(px_.index).fillna(0).cumsum()
+                cols=[c for c in sh.columns if c in px_.columns]
+                mv=(sh[cols]*px_[cols].fillna(0)).sum(axis=1)
+                fl=tr.groupby("date")["amount"].sum().reindex(px_.index).fillna(0)*-1
+                base=(mv.shift(1).fillna(0)+fl)
+                r=((mv-mv.shift(1).fillna(0)-fl)/base.where(base.abs()>1.0)).fillna(0)
+                r=r.replace([np.inf,-np.inf],0).clip(-0.6,0.6)
+                r=r[mv.shift(1).fillna(0)+fl.cumsum().clip(lower=0)>0]
+                bw=px_["IWM"].pct_change().reindex(r.index).fillna(0) if "IWM" in px_.columns else None
+                return r,bw
+            except Exception: return None,None
+        rzd,bwr=_twr_series(len(rz_tr))
+        if rzd is not None and len(rzd)>20 and bwr is not None:
+            rz_cum=float((1+rzd).prod()-1); bw_cum=float((1+bwr).prod()-1)
+            yrs=max(len(rzd)/252,1e-9)
+            rz_ann=(1+rz_cum)**(1/yrs)-1; bw_ann=(1+bw_cum)**(1/yrs)-1
+            rz_beta=float(np.cov(rzd,bwr)[0,1]/bwr.var()) if bwr.var() else None
+            rz_alpha=(rz_ann-rz_beta*bw_ann) if rz_beta is not None else None
+            n=st.columns(4)
+            n[0].metric("TWR Since Inception", pctf(rz_cum))
+            n[1].metric("TWR (ann.)", pctf(rz_ann))
+            n[2].metric("IWM Same Period (ann.)", pctf(bw_ann))
+            n[3].metric("Realized Alpha (ann.)", pctf(rz_alpha) if rz_alpha is not None else DASH)
+            st.caption("Time-weighted return reconstructed from actual trade history (trades.json) - entries, exits and sizing included. Excludes dividends/reinvested shares and cash drag. This is the citable number; the section above reflects the current book backfilled 1Y.")
+            gr=pd.DataFrame({"Portfolio (TWR)":(1+rzd).cumprod()*100,"IWM":(1+bwr).cumprod()*100})
+            figr=go.Figure()
+            figr.add_trace(go.Scatter(x=gr.index,y=gr["Portfolio (TWR)"],name="Portfolio (TWR)",line=dict(color=BLUE,width=2.2)))
+            figr.add_trace(go.Scatter(x=gr.index,y=gr["IWM"],name="IWM",line=dict(color=PURPLE,width=1.2,dash="dot")))
+            figr.update_layout(**PLOT,height=260,xaxis=dict(gridcolor=GRID),yaxis=dict(gridcolor=GRID),legend=dict(orientation="h"))
+            st.plotly_chart(figr, width='stretch')
+        else:
+            st.caption("Realized TWR unavailable - price history could not be fetched for the full trade tape.")
     a,b=st.columns(2)
     with a:
         st.subheader("Sector exposure")
