@@ -1,4 +1,9 @@
 [
+{"date": "08/10/2026", "ticker": "MRVL", "label": "Sell", "shares": 7.0, "price": 216.52, "amount": 1515.61},
+{"date": "08/10/2026", "ticker": "LSAK", "label": "Addition", "shares": 85.0, "price": 4.76, "amount": -404.6},
+{"date": "08/10/2026", "ticker": "CEG", "label": "Addition", "shares": 1.0, "price": 272.895, "amount": -272.9},
+{"date": "08/10/2026", "ticker": "KLAR", "label": "Addition", "shares": 13.0, "price": 19.475, "amount": -253.18},
+{"date": "08/10/2026", "ticker": "GRPN", "label": "Addition", "shares": 10.0, "price": 23.39, "amount": -233.9},
 {"date": "08/04/2026", "ticker": "MRVL", "label": "Addition", "shares": 2.0, "price": 221.94, "amount": -443.88},
 {"date": "08/04/2026", "ticker": "LSAK", "label": "Buy", "shares": 205.0, "price": 4.735, "amount": -970.68},
 {"date": "08/04/2026", "ticker": "XNET", "label": "Trim", "shares": 55.0, "price": 5.3526, "amount": 294.37},
