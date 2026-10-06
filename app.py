@@ -184,12 +184,33 @@ if FINN_KEY:
             info.setdefault(_t,{}).update(_m)
     except Exception: pass
 
+@st.cache_data(ttl=60)
+def fetch_live(tickers):
+    """Intraday last prices (1-min bars) so NAV tracks the market during the session."""
+    try:
+        import yfinance as yf
+        q=yf.download(tickers, period="1d", interval="1m", progress=False, auto_adjust=True, session=_yf_session())["Close"]
+        if isinstance(q,pd.Series): q=q.to_frame(tickers[0])
+        q=q.dropna(how="all").ffill()
+        if not len(q): return {}
+        return {t:float(q[t].iloc[-1]) for t in q.columns if q[t].dropna().size and not np.isnan(q[t].iloc[-1])}
+    except Exception: return {}
+
+live=fetch_live(tickers)
+as_of=str(d.get("as_of",""))
+hist_date=str(hist.index[-1].date()) if len(hist) else ""
+_today=datetime.date.today()
 def last_price(tk,fb):
-    if tk in hist.columns and hist[tk].dropna().size: return float(hist[tk].dropna().iloc[-1])
+    # priority: intraday quote -> daily close (only if at least as fresh as holdings.json) -> Schwab price from holdings.json
+    if tk in live: return live[tk]
+    if tk in hist.columns and hist[tk].dropna().size and hist_date>=as_of: return float(hist[tk].dropna().iloc[-1])
     return fb
 def prev_price(tk,fb):
-    if tk in hist.columns and hist[tk].dropna().size>=2: return float(hist[tk].dropna().iloc[-2])
-    return fb
+    # prior session close: if the daily history already has today's bar, step back one
+    s=hist[tk].dropna() if tk in hist.columns else pd.Series(dtype=float)
+    if not len(s): return fb
+    if s.index[-1].date()>=_today and len(s)>=2: return float(s.iloc[-2])
+    return float(s.iloc[-1])
 
 rows=[]
 for h in hold:
