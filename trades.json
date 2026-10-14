@@ -1,4 +1,6 @@
 [
+{"date": "10/13/2026", "ticker": "LSAK", "label": "Addition", "shares": 85.0, "price": 4.82, "amount": -409.7},
+{"date": "10/13/2026", "ticker": "FRMI", "label": "Sell", "shares": 110.0, "price": 3.825, "amount": 420.74},
 {"date": "08/10/2026", "ticker": "MRVL", "label": "Sell", "shares": 7.0, "price": 216.52, "amount": 1515.61},
 {"date": "08/10/2026", "ticker": "LSAK", "label": "Addition", "shares": 85.0, "price": 4.76, "amount": -404.6},
 {"date": "08/10/2026", "ticker": "CEG", "label": "Addition", "shares": 1.0, "price": 272.895, "amount": -272.9},
